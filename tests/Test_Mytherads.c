@@ -1,3 +1,8 @@
+#include <stdio.h>
+#include <unistd.h>
+#include "../Mythreads.h"
+
+
 void threadFunctionNoArg(){
     int i;
     for (i = 0; i < 10; ++i) {
@@ -5,8 +10,9 @@ void threadFunctionNoArg(){
         lock();              // *** try removing lock()
 
         printf("tip");
+        
         sleep(1);
-        printf(" toe\n");
+        printf(" toe %d \n",i);
         
         release();
     }
@@ -21,8 +27,8 @@ void threadFunctionNoArg2(){
         
         lock();             // *** try removing lock()
         printf("kit");
-        sleep(1);
-        printf(" kat\n");
+        usleep(1000000);
+        printf(" kat %d\n",i);
         release();
     }
     join(0);                // *** try removing join()
@@ -73,6 +79,8 @@ void test1(void){
     printf(" ** STARTING TEST 1  **\n\n");
     int thread1 = create(threadFunctionNoArg);
     int thread2 = create(threadFunctionNoArg2);
+    (void)thread1; // to remove unused variable warning
+    (void)thread2;
     start();
     printf(" ** TEST 1 DONE  **\n\n");
 }
@@ -82,11 +90,13 @@ void test2(void){
     int arg = 1;
     int thread1 = createWithArgs(add, &arg);
     int thread2 = createWithArgs(multiply, &arg);
+    (void)thread1;
+    (void)thread2;
     start();
     printf(" ** TEST 2 DONE  **\n\n");
 }
 
-void main() {
+int main() {
     int c;
     printf("TEST 1 OR TEST 2 :");
     scanf("%d",&c);
@@ -97,4 +107,6 @@ void main() {
     else    
         printf("wrong choice");
     printf(" ** ALL TESTS DONE  **\n\n\n");    
+
+    return 0;
 }

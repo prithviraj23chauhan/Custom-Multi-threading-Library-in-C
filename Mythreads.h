@@ -1,5 +1,4 @@
 #ifndef MYTHREAD_H
-
 #define MYTHREAD_H 
 
 #include<stdio.h>
@@ -43,19 +42,30 @@ typedef struct tcb
 }TCB; //the thread control block
 
 
-jmp_buf start_env; // healps in returning from start function after all thread routines are complelted
+extern jmp_buf start_env; // healps in returning from start function after all thread routines are complelted
 
 
-static int currentThread = -1;       
-static int nThreads = 0;             // total remaining threads 
-static TCB threadList[MAXTHREADS];   // thread container
-static int ran = 0;
+
+extern int currentThread;
+extern int nThreads;
+extern TCB threadList[MAXTHREADS];
+extern int ran;
 
 
 
 //////////////////   USABLE FUNCTIONS   //////////////////////////
+/* Create a new thread to run a function with no arguments.
+*  @param f Pointer to the function to run in the new thread.
+*  @return Thread ID on success, -1 on failure.           */
 int    create(void (*f)(void));// create a thread without arguments
+
+/* Create a new thread to run a function with a single argument.
+ * @param f Pointer to the function to run in the new thread (takes a void* argument).
+ * @param arg Argument to pass to the thread function.
+ * @return Thread ID on success, -1 on failure.    */
 int    createWithArgs(void *(*f)(void *), void *arg);// create a thread with arguments
+
+
 void   start(void);           //start executing the threads - possibly a master thread???
   
 void   suspend(int threadID); // halts the execution of thread until resumed
@@ -73,9 +83,9 @@ void   clean(void);           // stops the master thread?
 
 
 /////////////   INTERNAL WORKING FUNCTIONS   /////////////////////
-static void wrapper();        // function handeler
-void   alarm_handler(int sig);// handels the signal inturupts
-void   dispatch(int);         // the scheduler func
+// void   wrapper();        // function handeler
+// void   alarm_handler(int sig);// handels the signal inturupts
+// void   dispatch(int);         // the scheduler func
 
 
 #endif

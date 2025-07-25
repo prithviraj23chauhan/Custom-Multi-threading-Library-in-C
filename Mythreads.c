@@ -1,92 +1,6 @@
-//////////////////////////////////// DECLARATIONS   //////////////////////////////////////////
-
-/*
-#include<stdio.h>
-#include<stdlib.h>
-#include<signal.h>
-#include<string.h>
-#include<assert.h>
-#include<setjmp.h>
-#include<ctype.h>
-#include<time.h>
-#include<unistd.h>
 
 
-#define INTERVAL_uSEC 200000   // time slot for each thread in millisecond
-
-#define MAXTHREADS 10          // max no of threads
-
-#define STACK_SIZE 4096        // size for local stack of a thread in bytes
-
-typedef void *(*f_WithArgs)(void *);
-enum STATES{DED=0,RUN,RED,FIN,SUS, NEW};
-enum BOOLEAN {FALSE=0,TRUE};
-enum TYPE {ARG = 0, NOARG};
-
-typedef struct tcb
-{
-	jmp_buf env;             // environment variable
-    int ID;                  // ID no from 0 to MAXTHREADS
-	enum STATES state;       // current state of thread
-	enum BOOLEAN lock;       // indication if a thread is locked or not 
-	enum BOOLEAN complete;   // to check if a thread routine is finshed or not
-	enum TYPE tType;         // thread type determining arg/noarg
-
-	char stack[STACK_SIZE];  // the thread stack
-
-	void (*f1)(void);        // thread routine no arg type
-	f_WithArgs f2;           // thread routine arg type
-	void* args;              // thread args
-	void* retVal;            // to temporarily store return value as a void pointer
-	
-}TCB; //the thread control block
-
-
-jmp_buf start_env; // healps in returning from start function after all thread routines are complelted
-
-
-static int currentThread = -1;       
-static int nThreads = 0;             // total remaining threads 
-static TCB threadList[MAXTHREADS];   // thread container
-static int ran = 0;
-
-
-
-//////////////////   USABLE FUNCTIONS   //////////////////////////
-int    create(void (*f)(void));// create a thread without arguments
-int    createWithArgs(void *(*f)(void *), void *arg);// create a thread with arguments
-void   start(void);           //start executing the threads - possibly a master thread???
-  
-void   suspend(int threadID); // halts the execution of thread until resumed
-void   resume(int threadID);  // resumes the execution of thread
-
-void   lock(void);            // locks processor to current thread
-void   release(void);         // releases the lock 
-
-void   join(int threadID);    // waits till the exuction of given thread
-void*  GetThreadResult(int threadID);// return the retVal from a thread
-int    getID(void);           // return RThreadID
-void   yield(void);           // giving up processor voluntarily
-void   deleteThread(int threadID);// deletes a thread
-void   clean(void);           // stops the master thread?
-
-
-/////////////   INTERNAL WORKING FUNCTIONS   /////////////////////
-static void wrapper();        // function handeler
-void   alarm_handler(int sig);// handels the signal inturupts
-void   dispatch(int);         // the scheduler func
-
-
-*/
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-#include "MyThread.h"
+#include "Mythreads.h"
 
 
 ///////////////////////////////// ADDRESS MANIPULATION  ////////////////////////////////////////////////
@@ -134,116 +48,14 @@ address_t translate_address(address_t addr)
 #endif
 
 
-////////////////////////////////////   TEST CASES  ///////////////////////////////////////////////////////
-
-/*
-void threadFunctionNoArg(){
-    int i;
-    for (i = 0; i < 10; ++i) {
-        
-        lock();              // *** try removing lock()
-
-        printf("tip");
-        sleep(1);
-        printf(" toe\n");
-        
-        release();
-    }
-    // JOIN(1);
-    printf("tip toe done\n");
-}
-
-void threadFunctionNoArg2(){
-   int i;
-    for (i = 0; i < 5; ++i) {
-       
-        
-        lock();             // *** try removing lock()
-        printf("kit");
-        sleep(1);
-        printf(" kat\n");
-        release();
-    }
-    join(0);                // *** try removing join()
-    printf("kit kat done\n");
-}
+///////////////////////////////// THREAD MANAGEMENT  ////////////////////////////////////////////////
 
 
-
-void* add(void* arg){
-    int i;
-    int * temp = (int*)arg;
-    for (i = 0; i < 10; ++i) {
-        
-        lock();             
-        
-        (*temp)++;
-        printf("\nadd : %d\n",(*temp));
-        usleep(1000000);
-        
-        release();
-    }
-    // JOIN(1);
-    printf("addition done\n");
-    return temp;
-}
-
-void* multiply(void* arg) {
-    int i;
-    int * temp = (int*)GetThreadResult(0);
-    // int* temp = (int*)arg;
-    for (i = 0; i < 5; ++i) {
-
-        lock();             
-
-        *temp *= 2 ;
-        printf("mul : %d\n",(*temp));
-        usleep(1000000);
-
-        release();
-        
-    }
-    printf("multiplication done done\n");
-    return temp;
-}
-
-void test1(void){
-    // testing lock and join feature
-    printf(" ** STARTING TEST 1  **\n\n");
-    int thread1 = create(threadFunctionNoArg);
-    int thread2 = create(threadFunctionNoArg2);
-    start();
-    printf(" ** TEST 1 DONE  **\n\n");
-}
-
-void test2(void){
-    printf(" ** STARTING TEST 2  **\n\n");
-    int arg = 1;
-    int thread1 = createWithArgs(add, &arg);
-    int thread2 = createWithArgs(multiply, &arg);
-    start();
-    printf(" ** TEST 2 DONE  **\n\n");
-}
-
-void main() {
-    int c;
-    printf("TEST 1 OR TEST 2 :");
-    scanf("%d",&c);
-    if(c==1)
-        test1();
-    else if(c==2)
-        test2();
-    else    
-        printf("wrong choice");
-    printf(" ** ALL TESTS DONE  **\n\n\n");    
-}
-*/
-
-///////////////////////////////////////////   CODE  ////////////////////////////////////////////////////////
-
-
-
-
+jmp_buf start_env;
+int currentThread = -1;
+int nThreads = 0;
+TCB threadList[MAXTHREADS];
+int ran = 0;
 
 
 int createWithArgs(void *(*f)(void *), void *args) 
@@ -324,8 +136,8 @@ int create(void (*f)(void))
 }
 
 
-
-void alarm_handler(int sig)
+static void dispatch(int sig);
+static void alarm_handler(int sig)
 {
     // recives signal from alarm and inturupts the curernt procees and call thread schedular 
 
@@ -335,7 +147,7 @@ void alarm_handler(int sig)
 }
 
 
-void dispatch(int sig)    
+static void dispatch(int sig)    
 {
     // searches for next thread routine to perform
     // and return to main thread if all thread routines are complete
@@ -405,7 +217,7 @@ static void wrapper()     // function handeler
 
 void join(int threadID)//bonus
 {
-    if( threadID < 0 && threadID > MAXTHREADS || threadID ==  currentThread ) 
+    if( (threadID < 0 && threadID > MAXTHREADS) || threadID ==  currentThread ) 
         return ;
 
     int waitingThread = currentThread;
@@ -421,7 +233,7 @@ void join(int threadID)//bonus
 void* GetThreadResult(int threadID)
 {
     
-    if( threadID < 0 && threadID > MAXTHREADS || threadID ==  currentThread )
+    if( (threadID < 0 && threadID > MAXTHREADS) || threadID ==  currentThread )
     return NULL;
 
     void * result = NULL;
